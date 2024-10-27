@@ -75,7 +75,7 @@ function UploadClip() {
 
     try {
       const response = await axios.post(
-        'https://api.spoekle.com/api/clips/upload',
+        'https://api-main.spoekle.com/api/clips/upload',
         formData,
         {
           headers: {
@@ -98,7 +98,7 @@ function UploadClip() {
 
   const fetchClips = async () => {
     try {
-      const response = await axios.get('https://api.spoekle.com/api/clips');
+      const response = await axios.get('https://api-main.spoekle.com/api/clips');
       sortClips(response.data);
     } catch (error) {
       console.error('Error fetching clips:', error);
@@ -122,7 +122,7 @@ function UploadClip() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://api.spoekle.com/api/clips/${id}`, {
+      await axios.delete(`https://api-main.spoekle.com/api/clips/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchClips();
@@ -135,7 +135,7 @@ function UploadClip() {
     try {
       const clipToUpdate = clips.find((clip) => clip._id === id);
       const response = await axios.put(
-        `https://api.spoekle.com/api/clips/${id}`,
+        `https://api-main.spoekle.com/api/clips/${id}`,
         { streamer: clipToUpdate.streamer },
         {
           headers: {
@@ -156,7 +156,7 @@ function UploadClip() {
     try {
       const clipToUpdate = clips.find((clip) => clip._id === id);
       const response = await axios.put(
-        `https://api.spoekle.com/api/clips/${id}`,
+        `https://api-main.spoekle.com/api/clips/${id}`,
         { title: clipToUpdate.title },
         {
           headers: {
@@ -190,7 +190,7 @@ function UploadClip() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="text-white min-h-screen relative">
+    <div className="min-h-screen w-full top-0 text-white absolute bg-neutral-200 dark:bg-neutral-900">
       <div className="flex h-96 justify-center items-center" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="flex bg-black/20 backdrop-blur-lg justify-center items-center w-full h-full">
           <div className="flex flex-col justify-center items-center">

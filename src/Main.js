@@ -4,15 +4,16 @@ import axios from 'axios';
 import Navbar from './pages/components/Navbar';
 import Footer from './pages/components/Footer';
 import UploadClip from './pages/UploadClip';
-import ClipViewer from './pages/ClipViewer';
+import Posts from './pages/Posts';
 import Home from './pages/Home';
 import AdminDash from './pages/AdminDash';
 import PrivacyStatement from './pages/PrivacyStatement';
 import ProfilePage from './pages/ProfilePage';
 import Stats from './pages/Stats';
 import background from './media/background.jpg';
+import Photography from './pages/Photography';
 
-function ClipSesh() {
+function Main() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ function ClipSesh() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.get('https://api.spoekle.com/api/users/me', {
+          const response = await axios.get('https://api-main.spoekle.com/api/users/me', {
             headers: { Authorization: `Bearer ${token}` },
           });
           setUser(response.data);
@@ -63,15 +64,15 @@ function ClipSesh() {
 
     if (showLoadingScreen) {
       return (
-        <div className="absolute z-70 w-full h-full bg-neutral-200 dark:bg-neutral-900 ">
-        <div className="flex h-96 justify-center items-center" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover',backgroundPosition: 'center' }}>
-        <div className="flex bg-black/20 backdrop-blur-lg justify-center items-center w-full h-full">
-          <div className="flex flex-col justify-center items-center">
-            <h1 className="text-4xl font-bold mb-4 text-white text-center animate-pulse animate-duration-[800ms]">Checking Authentication...</h1>
+        <div className="absolute top-0 z-70 w-full h-full bg-neutral-200 dark:bg-neutral-900 ">
+          <div className="flex h-96 justify-center items-center" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover',backgroundPosition: 'center' }}>
+            <div className="flex bg-black/20 backdrop-blur-lg justify-center items-center w-full h-full">
+              <div className="flex flex-col justify-center items-center">
+                <h1 className="text-4xl font-bold mb-4 text-white text-center animate-pulse animate-duration-[800ms]">Checking Authentication...</h1>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      </div>
       );
     }
 
@@ -91,16 +92,17 @@ function ClipSesh() {
       <Navbar user={user} setUser={setUser} />
       <Routes>
         <Route exact path="/" element={<Home />} />
+        <Route path="/posts" element={<Posts />} />
+        <Route path="/photography" element={<Photography />} />
+        <Route path="/privacystatement" element={<PrivacyStatement />} />
         <Route path="/upload" element={<RequireAuth isAdminRequired={true}><UploadClip /></RequireAuth>} />
-        <Route path="/clips" element={<ClipViewer />} />
         <Route path="/admin" element={<RequireAuth isAdminRequired={true}><AdminDash /></RequireAuth>} />
         <Route path="/profile" element={<RequireAuth><ProfilePage user={user} setUser={setUser} /></RequireAuth>} />
         <Route path="/stats" element={<RequireAuth><Stats user={user} setUser={setUser} /></RequireAuth>} />
-        <Route path="/privacystatement" element={<PrivacyStatement />} />
       </Routes>
       <Footer />
     </Router>
   );
 }
 
-export default ClipSesh;
+export default Main;

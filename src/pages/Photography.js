@@ -12,11 +12,8 @@ import fallBg from '../media/fall.jpg';
 
 import placeholder from '../media/placeholder.png';
 import banner1 from '../media/banner1.png';
-import RatingModal from './components/clipViewer/RatingModal';
-import DeniedClips from './components/clipViewer/DeniedClips';
-import RatedClips from './components/clipViewer/RatedClips';
 
-function ClipViewer() {
+function Photography() {
   const token = localStorage.getItem('token');
   const [clips, setClips] = useState([]);
   const [ratings, setRatings] = useState({});
@@ -58,7 +55,7 @@ function ClipViewer() {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const response = await axios.get('https://api.spoekle.com/api/users/me', {
+        const response = await axios.get('https://api-main.spoekle.com/api/users/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data);
@@ -71,11 +68,11 @@ function ClipViewer() {
   const fetchClipsAndRatings = async () => {
     try {
       setIsLoading(true);
-      const clipResponse = await axios.get('https://api.spoekle.com/api/clips');
+      const clipResponse = await axios.get('https://api-main.spoekle.com/api/clips');
       setClips(clipResponse.data);
       if (token) {
         const ratingPromises = clipResponse.data.map(clip =>
-          axios.get(`https://api.spoekle.com/api/ratings/${clip._id}`, {
+          axios.get(`https://api-main.spoekle.com/api/ratings/${clip._id}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
         );
@@ -97,7 +94,7 @@ function ClipViewer() {
 
   const fetchDenyThreshold = async () => {
     try {
-      const response = await axios.get('https://api.spoekle.com/api/admin/config', {
+      const response = await axios.get('https://api-main.spoekle.com/api/admin/config', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.length > 0) {
@@ -127,20 +124,6 @@ function ClipViewer() {
       case 'highestDownvotes':
         sortedClips.sort((a, b) => b.downvotes - a.downvotes);
         break;
-      case 'highestRatio':
-        sortedClips.sort((a, b) => {
-          const ratioA = a.upvotes / (a.downvotes || 1);
-          const ratioB = b.upvotes / (b.downvotes || 1);
-          return ratioB - ratioA;
-        });
-        break;
-      case 'lowestRatio':
-        sortedClips.sort((a, b) => {
-          const ratioA = a.upvotes / (a.downvotes || 1);
-          const ratioB = b.upvotes / (b.downvotes || 1);
-          return ratioA - ratioB;
-        });
-        break;
       default:
         break;
     }
@@ -159,7 +142,7 @@ function ClipViewer() {
 
   const upvoteClip = async (id) => {
     try {
-      const response = await axios.post(`https://api.spoekle.com/api/clips/${id}/upvote`);
+      const response = await axios.post(`https://api-main.spoekle.com/api/clips/${id}/upvote`);
       if (response.status === 200) {
         fetchClipsAndRatings();
       } else {
@@ -173,7 +156,7 @@ function ClipViewer() {
 
   const downvoteClip = async (id) => {
     try {
-      const response = await axios.post(`https://api.spoekle.com/api/clips/${id}/downvote`);
+      const response = await axios.post(`https://api-main.spoekle.com/api/clips/${id}/downvote`);
       if (response.status === 200) {
         fetchClipsAndRatings();
       } else {
@@ -188,7 +171,7 @@ function ClipViewer() {
   const rateOrDenyClip = async (id, rating = null, deny = false) => {
     try {
       const data = rating !== null ? { rating } : { deny };
-      await axios.post(`https://api.spoekle.com/api/rate/${id}`, data, {
+      await axios.post(`https://api-main.spoekle.com/api/rate/${id}`, data, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchClipsAndRatings();
@@ -233,15 +216,15 @@ function ClipViewer() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="min-h-screen text-white relative bg-neutral-200 dark:bg-neutral-900">
+    <div className="min-h-screen w-full top-0 text-white absolute bg-neutral-200 dark:bg-neutral-900">
       <div className='w-full'>
         <LoadingBar color='#f11946' progress={progress} onLoaderFinished={() => setProgress(0)} />
       </div>
       <div className="flex h-96 justify-center items-center drop-shadow-xl animate-fade" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="flex bg-black/20 backdrop-blur-lg justify-center items-center w-full h-full">
           <div className="flex flex-col justify-center items-center">
-            <h1 className="text-4xl font-bold mb-4 text-center">Clip Viewer</h1>
-            <h1 className="text-3xl mb-4 text-center">Rate the clips!</h1>
+            <h1 className="text-4xl font-bold mb-4 text-center">Photography</h1>
+            <h1 className="text-3xl mb-4 text-center">Here you can find some photos that I have taken!</h1>
           </div>
         </div>
       </div>
@@ -263,8 +246,8 @@ function ClipViewer() {
             </select>
           </div>
         </div>
-        <div className="container w-full mt-4 justify-center items-center rounded-2xl animate-fade animate-delay-500" style={{ backgroundImage: `url(${banner1})`, backgroundSize: 'cover', backgroundPosition: 'center'  }}>
-          <div className='h-full w-full bg-white/20 backdrop-blur-lg rounded-2xl'>
+        <div className="container w-full min-w-full mt-4 justify-center items-center rounded-2xl animate-fade animate-delay-500" style={{ backgroundImage: `url(${banner1})`, backgroundSize: 'cover', backgroundPosition: 'center'  }}>
+          <div className='h-full w-full min-w-full bg-white/20 backdrop-blur-lg rounded-2xl'>
             <h2 className="p-4 text-center text-neutral-800 bg-white dark:bg-neutral-800 dark:text-white transition duration-200 backdrop-blur-sm rounded-t-xl text-2xl font-bold drop-shadow-md mb-4">Clips</h2>
             <div className="flex justify-center">
               <div className="items-center bg-white justify-center rounded-md py-2 px-4">
@@ -276,16 +259,16 @@ function ClipViewer() {
                 />
               </div>
             </div>
-            <div className="justify-center grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="w-full min-w-full justify-center grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, index) => (
-                  <div key={index} className="p-4 relative animate-pulse drop-shadow-md">
-                    <div className="overflow-hidden w-full text-center relative">
+                  <div key={index} className="m-4 shadow-2xl relative animate-pulse drop-shadow-md">
+                    <div className="overflow-hidden w-full text-center relative shadow-2xl">
                       <div className='rounded-t-lg bg-white dark:bg-neutral-800 transition duration-200 p-2'>
                         <img src={placeholder} alt="Logo" className="w-full rounded-lg border-white opacity-50" />
                       </div>
                     </div>
-                    <div className="w-full flex justify-center bg-white dark:bg-neutral-900 transition duration-200 rounded-b-lg px-4 pt-2 pb-4">
+                    <div className="w-full flex justify-center bg-white dark:bg-neutral-900 transition duration-200 rounded-b-lg px-4 pt-2 pb-4 shadow-2xl">
                       <button
                         className="w-1/2 text-green-500 dark:text-green-800 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-green-500 dark:hover:bg-green-800 transition duration-300 py-2 px-6 rounded-l-md"
                       >
@@ -311,8 +294,8 @@ function ClipViewer() {
                       }
                     })
                     .map(clip => (
-                      <div key={clip._id} className="p-4 relative shadow-2xl animate-fade">
-                        <div className="overflow-hidden w-full text-center relative">
+                      <div key={clip._id} className="m-4 relative animate-fade">
+                        <div className="overflow-hidden w-full text-center relative shadow-2xl">
                           {isLoggedIn && (
                             <div className="flex justify-center">
                               <div className='absolute top-0 right-0 z-40 p-2 bg-white text-neutral-900 dark:bg-neutral-800 dark:text-white transition duration-200 rounded-md'>
@@ -337,7 +320,7 @@ function ClipViewer() {
                             </video>
                           </div>
                         </div>
-                        <div className="w-full flex justify-center bg-white dark:bg-neutral-900 transition duration-200 rounded-b-lg px-4 pt-2 pb-4">
+                        <div className="w-full flex justify-center bg-white dark:bg-neutral-900 transition duration-200 rounded-b-lg px-4 pt-2 pb-4 shadow-2xl">
                           <button
                             className="w-1/2 text-green-500 dark:text-green-800 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-green-500 dark:hover:bg-green-800 transition duration-300 py-2 px-6 rounded-l-md"
                             onClick={() => upvoteClip(clip._id)}
@@ -359,23 +342,13 @@ function ClipViewer() {
               )}
             </div>
 
-            <RatedClips isLoggedIn={isLoggedIn} isLoading={isLoading} setExpandedClip={setExpandedClip} currentClips={currentClips} ratings={ratings} denyThreshold={denyThreshold} upvoteClip={upvoteClip} downvoteClip={downvoteClip} user={user} />
+          
 
           </div>
         </div>
-        
-
-        <RatingModal
-          expandedClip={expandedClip}
-          clips={clips}
-          setExpandedClip={setExpandedClip}
-          isLoggedIn={isLoggedIn}
-          ratings={ratings}
-          rateOrDenyClip={rateOrDenyClip}
-        />
       </div>
     </div >
   );
 }
-// <DeniedClips isLoggedIn={isLoggedIn} isLoading={isLoading} deniedClips={deniedClips} setExpandedClip={setExpandedClip} />
-export default ClipViewer;
+
+export default Photography;

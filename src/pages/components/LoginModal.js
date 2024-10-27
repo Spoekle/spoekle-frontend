@@ -30,7 +30,7 @@ const LoginModal = ({ setIsLoginModalOpen, isLoginModalOpen, fetchUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = isRegister ? 'https://api.spoekle.com/api/users/register' : 'https://api.spoekle.com/api/users/login';
+    const url = isRegister ? 'https://api-main.spoekle.com/api/users/register' : 'https://api-main.spoekle.com/api/users/login';
     try {
       const response = await axios.post(url, formData);
       if (isRegister) {
@@ -70,23 +70,23 @@ const LoginModal = ({ setIsLoginModalOpen, isLoginModalOpen, fetchUser }) => {
   };
 
   const handleDiscordLogin = () => {
-    window.location.href = `https://api.spoekle.com/api/auth/discord`;
+    window.location.href = `https://api-main.spoekle.com/api/auth/discord`;
   };
 
   return (
     <>
       {isLoginModalOpen && (
         <div
-          className="login-modal-overlay fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex justify-center items-center z-50"
+          className="login-modal-overlay fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50"
           onClick={handleLoginClickOutside}
         >
           <div className="modal-content rounded-lg relative flex">
             <div className="text-white flex items-center justify-center">
-              <div className="max-w-md w-full bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white backdrop-blur-lg p-8 rounded-md shadow-md">
-                <h2 className="text-3xl font-bold mb-4">{isRegister ? 'Register' : 'ClipSesh! Login'}</h2>
+              <div className="max-w-md w-full bg-white/10 backdrop-blur-xl rounded-2xl border border-white text-white p-8 shadow-md animate-jump-in duration-150">
+                <h2 className="text-3xl font-bold mb-4">{isRegister ? 'Register' : 'Login'}</h2>
                 <form onSubmit={handleSubmit}>
                   <div className="mb-4">
-                    <label htmlFor="username" className="block text-neutral-900 dark:text-gray-300">Username:</label>
+                    <label htmlFor="username" className="block text-gray-200">Username:</label>
                     <input
                       type="text"
                       id="username"
@@ -94,12 +94,12 @@ const LoginModal = ({ setIsLoginModalOpen, isLoginModalOpen, fetchUser }) => {
                       value={formData.username}
                       onKeyDown={handleKeyDown}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 bg-neutral-200 dark:bg-neutral-900 dark:text-white text-neutral-900 rounded-md focus:outline-none focus:bg-neutral-300 dark:focus:bg-neutral-700"
+                      className="w-full px-3 py-2 bg-neutral-200/30 text-white rounded-md focus:outline-none focus:bg-neutral-300/50 transition duration-300"
                       required
                     />
                   </div>
                   <div className="mb-4">
-                    <label htmlFor="password" className="block text-neutral-900 dark:text-gray-300">Password:</label>
+                    <label htmlFor="password" className="block text-gray-200">Password:</label>
                     <input
                       type="password"
                       id="password"
@@ -107,13 +107,13 @@ const LoginModal = ({ setIsLoginModalOpen, isLoginModalOpen, fetchUser }) => {
                       value={formData.password}
                       onKeyDown={handleKeyDown}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 bg-neutral-200 dark:bg-neutral-900 dark:text-white text-neutral-900 rounded-md focus:outline-none focus:bg-neutral-300 dark:focus:bg-neutral-700"
+                      className="w-full px-3 py-2 bg-neutral-200/30 text-white rounded-md focus:outline-none focus:bg-neutral-300/50 transition duration-300"
                       required
                     />
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md focus:outline-none focus:bg-blue-600 transition duration-300"
+                    className="w-full bg-blue-500/50 hover:bg-blue-600/50 text-white py-2 rounded-md focus:outline-none focus:bg-blue-600/50 transition duration-300"
                   >
                     {isRegister ? 'Register' : 'Login'}
                   </button>
@@ -122,7 +122,7 @@ const LoginModal = ({ setIsLoginModalOpen, isLoginModalOpen, fetchUser }) => {
                   <div className="mt-4 text-center">
                     <button
                       onClick={handleDiscordLogin}
-                      className="flex items-center justify-center w-full bg-blurple hover:bg-blurple-dark text-white py-2 rounded-md focus:outline-none focus:bg-blurple-dark transition duration-300"
+                      className="flex items-center justify-center w-full bg-blurple/50 hover:bg-blurple-dark/50 text-white py-2 rounded-md focus:outline-none focus:bg-blurple-dark/50 transition duration-300"
                     >
                       <FaDiscord className="mr-1" /> Login with Discord
                     </button>

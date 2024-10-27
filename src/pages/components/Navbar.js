@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { FaSun, FaMoon } from 'react-icons/fa';
 import axios from 'axios';
-import logo from '../../media/CC250.png';
+import logo from '../../media/spoekle_nobg.webp';
 import LoginModal from '../components/LoginModal';
+import { IoMenuSharp } from "react-icons/io5";
 
 function Navbar({ setUser, user }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +20,7 @@ function Navbar({ setUser, user }) {
         const token = localStorage.getItem('token');
         if (token) {
             try {
-                const response = await axios.get('https://api.spoekle.com/api/users/me', {
+                const response = await axios.get('https://api-main.spoekle.com/api/users/me', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setUser(response.data);
@@ -37,7 +38,7 @@ function Navbar({ setUser, user }) {
     const handleLogout = () => {
         localStorage.removeItem('token');
         setUser(null);
-        window.location.href = '/clips';
+        window.location.href = '/';
     };
 
     const toggleNavbar = () => {
@@ -81,11 +82,12 @@ function Navbar({ setUser, user }) {
     };
 
     return (
-        <nav className="p-2 z-50 sticky text-neutral-900 dark:text-white bg-neutral-200 dark:bg-neutral-900 transition duration-200">
-            <div className="container mx-auto flex items-center justify-between flex-wrap">
+        <nav className="m-6 z-50 sticky text-white">
+            <div className="container mx-auto p-4 flex items-center justify-between flex-wrap bg-white/10 backdrop-blur-lg rounded-xl border border-white transition duration-200">
                 <div className="items-center text-white ml-6 mr-6 inline hover:scale-110 transition duration-200">
-                    <NavLink to="/">
-                        <img src={logo} alt="Logo" className="h-10 mr-2 block" />
+                    <NavLink to="/" className={"flex items-center"}>
+                        <img src={logo} alt="Logo" className="h-10 mr-2 block rounded-full border-2 border-white" />
+                        <h1 className="text-2xl font-bold">Spoekle</h1>
                     </NavLink>
                 </div>
                 <div className="block lg:hidden">
@@ -93,13 +95,7 @@ function Navbar({ setUser, user }) {
                         onClick={toggleNavbar}
                         className="flex items-center px-3 py-2 hover:border rounded border-white hover: hover:border-white"
                     >
-                        <svg
-                            className="fill-current h-6 w-6"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path d="M0 3h20v2H0zM0 7h20v2H0zM0 11h20v2H0z" />
-                        </svg>
+                        <IoMenuSharp height={40} width={40} />
                     </button>
                 </div>
                 <div
@@ -108,13 +104,22 @@ function Navbar({ setUser, user }) {
                 >
                     <div className="text-md items-center lg:flex-grow lg:flex lg:justify-end">
                         <NavLink
-                            to="/clips"
+                            to="/posts"
                             className={({ isActive }) =>
-                                `block mt-4 lg:inline-block lg:mt-0 ${isActive ? 'underline bg-black/20 scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`
+                                `block mt-4 lg:inline-block lg:mt-0 ${isActive ? 'underline bg-black/20 scale-105 lg:scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-105 lg:hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`
                             }
                             onClick={toggleNavbar}
                         >
-                            View Clips!
+                            Posts
+                        </NavLink>
+                        <NavLink
+                            to="/photography"
+                            className={({ isActive }) =>
+                                `block mt-4 lg:inline-block lg:mt-0 ${isActive ? 'underline bg-black/20 scale-105 lg:scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-105 lg:hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`
+                            }
+                            onClick={toggleNavbar}
+                        >
+                            Photography
                         </NavLink>
                         {user ? (
                             <>
@@ -123,30 +128,30 @@ function Navbar({ setUser, user }) {
                                         <NavLink
                                             to="/upload"
                                             className={({ isActive }) =>
-                                                `block mt-4 lg:inline-block font-semibold lg:mt-0 ${isActive ? 'underline bg-black/20 scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`
+                                                `block mt-4 lg:inline-block font-semibold lg:mt-0 ${isActive ? 'underline bg-black/20 scale-105 lg:scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-105 lg:hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`
                                             }
                                             onClick={toggleNavbar}
                                         >
-                                            Upload!
+                                            Create Post
                                         </NavLink>
                                         <NavLink
                                             to="/admin"
                                             className={({ isActive }) =>
-                                                `block mt-4 lg:inline-block font-semibold lg:mt-0 ${isActive ? 'underline bg-black/20 scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`
+                                                `block mt-4 lg:inline-block font-semibold lg:mt-0 ${isActive ? 'underline bg-black/20 scale-105 lg:scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-105 lg:hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`
                                             }
                                             onClick={toggleNavbar}
                                         >
-                                            Admin Dashboard
+                                            Admin
                                         </NavLink>
                                     </>
                                 )}
                                 <div className="relative" ref={dropdownRef}>
-                                    <button onClick={toggleDropdown} className="flex items-center mt-4 lg:mt-0 py-2 px-3 mx-3 bg-transparent hover:bg-black/20 hover:scale-110 rounded-md transition duration-200">
+                                    <button onClick={toggleDropdown} className="flex items-center mt-4 lg:mt-0 py-2 px-3 mx-3 bg-transparent hover:bg-black/20 hover:scale-105 lg:hover:scale-110 rounded-md transition duration-200">
                                         <img src={user.profilePicture} alt={user.username} className="h-10 w-10 rounded-full mr-2" />
                                         {user.username}
                                     </button>
                                     {isDropdownOpen && (
-                                        <div className="absolute lg:right-0 mt-2 w-48 backdrop-blur-md bg-white/30 dark:bg-neutral-900/30 rounded-md shadow-lg py-2">
+                                        <div className="absolute lg:right-0 mt-2 w-full bg-white/30 dark:bg-neutral-900/30 rounded-md shadow-lg py-2">
                                             <NavLink
                                                 to="/profile"
                                                 className="block px-4 py-2 text-sm text-neutral-900 dark:text-white hover:bg-black/20 transition duration-200"
@@ -181,18 +186,20 @@ function Navbar({ setUser, user }) {
                                 </div>
                             </>
                         ) : (
-                            <button
+                            <NavLink
                                 onClick={toggleLoginModal}
-                                className={({ isActive }) =>
-                                    `block mt-4 lg:inline-block font-semibold lg:mt-0 ${isActive ? 'underline bg-black/20 scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`
+                                className={
+                                    `block mt-4 lg:inline-block font-semibold lg:mt-0 rounded-md py-2 px-3 mx-3 transition duration-200 hover:bg-black/20 hover:scale-105 lg:hover:scale-110`
                                 }
                             >
                                 Login!
-                            </button>
+                            </NavLink>
                         )}
-                        <button onClick={toggleDarkMode} className="py-2 px-3 mt-4 mx-3 lg:mt-0 bg-transparent hover:bg-black/20 hover:scale-110 rounded-md transition duration-200">
+                        <NavLink
+                            onClick={toggleDarkMode} className="block mt-4 lg:inline-block lg:mt-0 hover:bg-black/20 hover:scale-105 lg:hover:scale-110 rounded-md py-2 px-3 mx-3 transition duration-200"
+                        >
                             {isDarkMode ? <FaSun className="transition duration-200" /> : <FaMoon className="transition duration-200" />}
-                        </button>
+                        </NavLink>
                     </div>
                 </div>
             </div>
