@@ -126,15 +126,6 @@ function Navbar({ setUser, user }) {
                                 {user.role === 'admin' && (
                                     <>
                                         <NavLink
-                                            to="/upload"
-                                            className={({ isActive }) =>
-                                                `block mt-4 lg:inline-block font-semibold lg:mt-0 ${isActive ? 'underline bg-black/20 scale-105 lg:scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-105 lg:hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`
-                                            }
-                                            onClick={toggleNavbar}
-                                        >
-                                            Create Post
-                                        </NavLink>
-                                        <NavLink
                                             to="/admin"
                                             className={({ isActive }) =>
                                                 `block mt-4 lg:inline-block font-semibold lg:mt-0 ${isActive ? 'underline bg-black/20 scale-105 lg:scale-110' : 'bg-transparent hover:bg-black/20 hover:scale-105 lg:hover:scale-110'} rounded-md py-2 px-3 mx-3 transition duration-200`

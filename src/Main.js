@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import axios from 'axios';
 import Navbar from './pages/components/Navbar';
 import Footer from './pages/components/Footer';
-import UploadClip from './pages/UploadClip';
 import Posts from './pages/Posts';
 import Home from './pages/Home';
 import AdminDash from './pages/AdminDash';
@@ -96,7 +95,6 @@ function Main() {
         <Route path="/posts/:postId" element={<Posts />} />
         <Route path="/photography" element={<Photography />} />
         <Route path="/privacystatement" element={<PrivacyStatement />} />
-        <Route path="/upload" element={<RequireAuth isAdminRequired={true}><UploadClip /></RequireAuth>} />
         <Route path="/admin" element={<RequireAuth isAdminRequired={true}><AdminDash /></RequireAuth>} />
         <Route path="/profile" element={<RequireAuth><ProfilePage user={user} setUser={setUser} /></RequireAuth>} />
         <Route path="/stats" element={<RequireAuth><Stats user={user} setUser={setUser} /></RequireAuth>} />

@@ -1,32 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import LoadingBar from 'react-top-loading-bar';
-import Pagination from '@mui/material/Pagination';
+import ImageGallery from "react-image-gallery";
+import NewPhotoForm from './components/photos/NewPhotoForm';
 
-import background from '../media/background.jpg';
 import winterBg from '../media/winter.webp';
 import springBg from '../media/spring.jpg';
 import summerBg from '../media/summer.jpg';
 import fallBg from '../media/fall.jpg';
 
-import placeholder from '../media/placeholder.png';
-import banner1 from '../media/banner1.png';
-
 function Photography() {
-  const token = localStorage.getItem('token');
-  const [clips, setClips] = useState([]);
-  const [ratings, setRatings] = useState({});
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [expandedClip, setExpandedClip] = useState(null);
-  const [sortOption, setSortOption] = useState('newest');
-  const [denyThreshold, setDenyThreshold] = useState(0);
+  const [photos, setPhotos] = useState([]);
+  const [newPhotoForm, setNewPhotoForm] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
   const [seasonInfo, setSeasonInfo] = useState({ season: '' });
-  const [itemsPerPage] = useState(6);
 
   useEffect(() => {
     fetchInitialData();
@@ -35,12 +25,11 @@ function Photography() {
   const fetchInitialData = async () => {
     try {
       await fetchUser();
-      setProgress(10);
-      await checkLoginStatus();
-      setProgress(20);
-      getSeason();
       setProgress(50);
-      await fetchClipsAndRatings();
+      checkLoginStatus();
+      setProgress(75);
+      await fetchPhotos();
+      getSeason();
       setProgress(100);
     } catch (error) {
       console.error('Error fetching initial data:', error);
@@ -65,118 +54,26 @@ function Photography() {
     }
   };
 
-  const fetchClipsAndRatings = async () => {
+  const fetchPhotos = async () => {
     try {
-      setIsLoading(true);
-      const clipResponse = await axios.get('https://api-main.spoekle.com/api/clips');
-      setClips(clipResponse.data);
-      if (token) {
-        const ratingPromises = clipResponse.data.map(clip =>
-          axios.get(`https://api-main.spoekle.com/api/ratings/${clip._id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        );
-        await fetchDenyThreshold();
-        const ratingResponses = await Promise.all(ratingPromises);
-        const ratingsData = ratingResponses.reduce((acc, res, index) => {
-          acc[clipResponse.data[index]._id] = res.data;
-          return acc;
-        }, {});
-        setRatings(ratingsData);
-      }
-      sortClips(clipResponse.data);
+      const response = await axios.get('https://api-main.spoekle.com/api/photos');
+      setPhotos(response.data);
     } catch (error) {
-      console.error('Error fetching clips and ratings:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching posts:', error);
     }
   };
 
-  const fetchDenyThreshold = async () => {
-    try {
-      const response = await axios.get('https://api-main.spoekle.com/api/admin/config', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.data.length > 0) {
-        setDenyThreshold(response.data[0].denyThreshold);
-      }
-    } catch (error) {
-      console.error('Error fetching deny threshold:', error);
-    }
-  };
+  const photoGallery = photos.map(photo => ({
+    original: photo.file,
+    thumbnail: photo.thumbnailFile,
+    description: photo.title,
+  }));
 
   const checkLoginStatus = () => {
+    const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
-  };
-
-  const sortClips = (clipsToSort = clips) => {
-    let sortedClips = [...clipsToSort];
-    switch (sortOption) {
-      case 'newest':
-        sortedClips.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        break;
-      case 'oldest':
-        sortedClips.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        break;
-      case 'highestUpvotes':
-        sortedClips.sort((a, b) => b.upvotes - a.upvotes);
-        break;
-      case 'highestDownvotes':
-        sortedClips.sort((a, b) => b.downvotes - a.downvotes);
-        break;
-      default:
-        break;
-    }
-    setClips(sortedClips);
-  };
-
-  const handleError = (error, action) => {
-    if (error.response) {
-      console.error(`Error ${action} clip:`, error.response.data);
-      alert(`${error.response.data}`);
-    } else {
-      console.error(`Error ${action} clip:`, error.message);
-      alert(`${error.message}`);
-    }
-  };
-
-  const upvoteClip = async (id) => {
-    try {
-      const response = await axios.post(`https://api-main.spoekle.com/api/clips/${id}/upvote`);
-      if (response.status === 200) {
-        fetchClipsAndRatings();
-      } else {
-        console.error('Error upvoting clip:', response.data);
-        alert(response.data);
-      }
-    } catch (error) {
-      handleError(error, 'upvoting');
-    }
-  };
-
-  const downvoteClip = async (id) => {
-    try {
-      const response = await axios.post(`https://api-main.spoekle.com/api/clips/${id}/downvote`);
-      if (response.status === 200) {
-        fetchClipsAndRatings();
-      } else {
-        console.error('Error downvoting clip:', response.data);
-        alert(response.data);
-      }
-    } catch (error) {
-      handleError(error, 'downvoting');
-    }
-  };
-
-  const rateOrDenyClip = async (id, rating = null, deny = false) => {
-    try {
-      const data = rating !== null ? { rating } : { deny };
-      await axios.post(`https://api-main.spoekle.com/api/rate/${id}`, data, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      fetchClipsAndRatings();
-    } catch (error) {
-      alert('Error rating/denying clip:', error);
+    if (token) {
+      fetchUser();
     }
   };
 
@@ -201,153 +98,53 @@ function Photography() {
     }));
   };
 
-  const deniedClips = clips.filter(clip => {
-    const ratingData = ratings[clip._id];
-    return ratingData && ratingData.ratingCounts.some(rateData => rateData.rating === 'deny' && rateData.count >= denyThreshold);
-  });
-
-  // Pagination and sorting
-  const indexOfLastClip = currentPage * itemsPerPage;
-  const indexOfFirstClip = indexOfLastClip - itemsPerPage;
-  const currentClips = clips.slice(indexOfFirstClip, indexOfLastClip);
-
-  const totalPages = Math.ceil(clips.length / itemsPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const renderContent = () => {
+    if (newPhotoForm) {
+      return <NewPhotoForm setNewPhotoForm={setNewPhotoForm} />;
+    } else {
+      return (
+        <>
+          <div className="text-center py-4 justify-center items-center z-30">
+            {isLoggedIn && (user?.role === 'admin' || user?.role === 'uploader') && (
+              <div className="flex justify-center items-center mt-4">
+                <button
+                  className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 py-2 px-4 rounded-md border-2 border-neutral-800 dark:border-white"
+                  onClick={() => setNewPhotoForm(true)}
+                >
+                  New Post!
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="container">
+            <ImageGallery 
+              items={photoGallery}
+            />
+          </div>
+        </>
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen w-full top-0 text-white absolute bg-neutral-200 dark:bg-neutral-900">
       <div className='w-full'>
         <LoadingBar color='#f11946' progress={progress} onLoaderFinished={() => setProgress(0)} />
       </div>
-      <div className="flex h-96 justify-center items-center drop-shadow-xl animate-fade" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      <div className="flex w-full h-96 justify-center items-center drop-shadow-xl animate-fade" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="flex bg-black/20 backdrop-blur-lg justify-center items-center w-full h-full">
           <div className="flex flex-col justify-center items-center">
-            <h1 className="text-4xl font-bold mb-4 text-center">Photography</h1>
-            <h1 className="text-3xl mb-4 text-center">Here you can find some photos that I have taken!</h1>
+            <h1 className="text-4xl font-bold mb-4 text-center">Posts</h1>
+            <h1 className="text-3xl mb-4 text-center">These are some projects that I have worked on!</h1>
           </div>
         </div>
       </div>
-      <div className="grid justify-items-center text-white p-4 pt-8 bg-neutral-200 dark:bg-neutral-900 transition duration-200 justify-center items-center animate-fade"
-      >
-        <div className="text-center py-4 justify-center items-center z-30">
-          <div className="pb-4 flex justify-center">
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              className="bg-white text-neutral-900 dark:bg-neutral-800 dark:text-white transition duration-200 py-2 px-4 rounded-md border-2 border-neutral-800 dark:border-white"
-            >
-              <option value="newest">Newest Clips</option>
-              <option value="oldest">Oldest Clips</option>
-              <option value="highestUpvotes">Highest Upvotes</option>
-              <option value="highestDownvotes">Highest Downvotes</option>
-              <option value="highestRatio">Highest Upvote/Downvote Ratio</option>
-              <option value="lowestRatio">Lowest Upvote/Downvote Ratio</option>
-            </select>
-          </div>
-        </div>
-        <div className="container w-full min-w-full mt-4 justify-center items-center rounded-2xl animate-fade animate-delay-500" style={{ backgroundImage: `url(${banner1})`, backgroundSize: 'cover', backgroundPosition: 'center'  }}>
-          <div className='h-full w-full min-w-full bg-white/20 backdrop-blur-lg rounded-2xl'>
-            <h2 className="p-4 text-center text-neutral-800 bg-white dark:bg-neutral-800 dark:text-white transition duration-200 backdrop-blur-sm rounded-t-xl text-2xl font-bold drop-shadow-md mb-4">Clips</h2>
-            <div className="flex justify-center">
-              <div className="items-center bg-white justify-center rounded-md py-2 px-4">
-                <Pagination
-                  showFirstButton showLastButton
-                  count={totalPages}
-                  page={currentPage}
-                  onChange={(e, page) => paginate(page)}
-                />
-              </div>
-            </div>
-            <div className="w-full min-w-full justify-center grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, index) => (
-                  <div key={index} className="m-4 shadow-2xl relative animate-pulse drop-shadow-md">
-                    <div className="overflow-hidden w-full text-center relative shadow-2xl">
-                      <div className='rounded-t-lg bg-white dark:bg-neutral-800 transition duration-200 p-2'>
-                        <img src={placeholder} alt="Logo" className="w-full rounded-lg border-white opacity-50" />
-                      </div>
-                    </div>
-                    <div className="w-full flex justify-center bg-white dark:bg-neutral-900 transition duration-200 rounded-b-lg px-4 pt-2 pb-4 shadow-2xl">
-                      <button
-                        className="w-1/2 text-green-500 dark:text-green-800 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-green-500 dark:hover:bg-green-800 transition duration-300 py-2 px-6 rounded-l-md"
-                      >
-                        <FaArrowUp className="mr-1" /> 420
-                      </button>
-                      <button
-                        className="w-1/2 text-red-500 dark:text-red-800 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-red-500 dark:hover:bg-red-800 transition duration-300 py-2 px-6 rounded-r-md"
-                      >
-                        <FaArrowDown className="mr-1" /> 69
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                currentClips.length > 0 ? (
-                  currentClips
-                    .filter(clip => {
-                      if (isLoggedIn) {
-                        const ratingData = ratings[clip._id];
-                        return ratingData && !ratingData.ratingCounts.some(rateData => rateData.users.some(ratingUser => ratingUser.userId === user._id)) && ratingData.ratingCounts.some(rateData => rateData.rating === 'deny' && rateData.count < denyThreshold);
-                      } else {
-                        return true;
-                      }
-                    })
-                    .map(clip => (
-                      <div key={clip._id} className="m-4 relative animate-fade">
-                        <div className="overflow-hidden w-full text-center relative shadow-2xl">
-                          {isLoggedIn && (
-                            <div className="flex justify-center">
-                              <div className='absolute top-0 right-0 z-40 p-2 bg-white text-neutral-900 dark:bg-neutral-800 dark:text-white transition duration-200 rounded-md'>
-                                <button
-                                  className="text-lg font-bold p-1 bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white transition duration-200 hover:text-blue-500 rounded-sm"
-                                  onClick={() => setExpandedClip(clip._id)}
-                                >
-                                  Rating!
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                          <div className="absolute flex justify-center top-0 left-0 z-30 text-lg font-bold bg-white text-neutral-900 dark:bg-neutral-800 dark:text-white transition duration-200 p-2 rounded-md text-center">
-                            <a href={clip.link} className='cursor-pointer'>{clip.streamer}</a>
-                          </div>
-                          <div className='rounded-t-lg bg-white dark:bg-neutral-800 transition duration-200 p-2'>
-                            <video
-                              className="w-full rounded-lg border-white dark:border-neutral-800 transition duration-200"
-                              src={`${clip.url}`}
-                              controls
-                            >
-                            </video>
-                          </div>
-                        </div>
-                        <div className="w-full flex justify-center bg-white dark:bg-neutral-900 transition duration-200 rounded-b-lg px-4 pt-2 pb-4 shadow-2xl">
-                          <button
-                            className="w-1/2 text-green-500 dark:text-green-800 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-green-500 dark:hover:bg-green-800 transition duration-300 py-2 px-6 rounded-l-md"
-                            onClick={() => upvoteClip(clip._id)}
-                          >
-                            <FaArrowUp className="mr-1" /> {clip.upvotes}
-                          </button>
-                          <button
-                            className="w-1/2 text-red-500 dark:text-red-800 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-red-500 dark:hover:bg-red-800 transition duration-300 py-2 px-6 rounded-r-md"
-                            onClick={() => downvoteClip(clip._id)}
-                          >
-                            <FaArrowDown className="mr-1" /> {clip.downvotes}
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                ) : (
-                  <div className="my-2 mx-4 text-center bg-black/30 p-4 rounded-md font-semibold text-xl text-white col-span-full">No clips available.</div>
-                )
-              )}
-            </div>
 
-          
+      <div className="container justify-self-center text-white p-4 pt-8 bg-neutral-200 dark:bg-neutral-900 transition duration-200 justify-center items-center animate-fade">
 
-          </div>
-        </div>
+        {renderContent()}
       </div>
-    </div >
+    </div>
   );
 }
 
