@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 import axios from 'axios';
-import { FaThumbsDown, FaThumbsUp } from 'react-icons/fa';
+import PostContent from './components/posts/PostContent';
+import NewPostForm from './components/posts/NewPostForm';
 import LoadingBar from 'react-top-loading-bar';
 import Pagination from '@mui/material/Pagination';
 
@@ -9,20 +12,18 @@ import springBg from '../media/spring.jpg';
 import summerBg from '../media/summer.jpg';
 import fallBg from '../media/fall.jpg';
 
-import PostModal from './components/clipViewer/PostModal';
-
-function Posts() {
-  const token = localStorage.getItem('token');
+const Posts = () => {
+  const { postId } = useParams();
   const [posts, setPosts] = useState([]);
+  const [expandedPost, setExpandedPost] = useState(postId || null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [expandedPost, setExpandedPost] = useState(null);
+  const [currentPosts, setCurrentPosts] = useState([]);
   const [sortOption, setSortOption] = useState('newest');
-  const [isLoading, setIsLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [progress, setProgress] = useState(0);
   const [seasonInfo, setSeasonInfo] = useState({ season: '' });
-  const [itemsPerPage] = useState(6);
 
   useEffect(() => {
     fetchInitialData();
@@ -32,7 +33,7 @@ function Posts() {
     try {
       await fetchUser();
       setProgress(10);
-      await checkLoginStatus();
+      checkLoginStatus();
       setProgress(20);
       getSeason();
       setProgress(50);
@@ -40,41 +41,20 @@ function Posts() {
       setProgress(100);
     } catch (error) {
       console.error('Error fetching initial data:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const background = seasonInfo.season === 'Winter' ? winterBg : seasonInfo.season === 'Spring' ? springBg : seasonInfo.season === 'Summer' ? summerBg : fallBg;
 
-  const fetchUser = async () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const response = await axios.get('https://api-main.spoekle.com/api/users/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(response.data);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    }
-  };
-
   const fetchPosts = async () => {
     try {
-      setIsLoading(true);
-      const postResponse = await axios.get('https://api-main.spoekle.com/api/posts');
-      sortPosts(postResponse.data);
+      const response = await axios.get('https://api-main.spoekle.com/api/posts');
+      sortPosts(response.data);
+      setCurrentPosts(response.data);
+      setTotalPages(Math.ceil(response.data.length / 6)); // Assuming 6 posts per page
     } catch (error) {
-      console.error('Error fetching posts and ratings:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching posts:', error);
     }
-  };
-
-  const checkLoginStatus = () => {
-    setIsLoggedIn(!!token);
   };
 
   const sortPosts = (postsToSort = posts) => {
@@ -96,44 +76,36 @@ function Posts() {
         break;
     }
     setPosts(sortedPosts);
+    setCurrentPosts(sortedPosts.slice((currentPage - 1) * 6, currentPage * 6));
   };
 
-  const handleError = (error, action) => {
-    if (error.response) {
-      console.error(`Error ${action} post:`, error.response.data);
-      alert(`${error.response.data}`);
-    } else {
-      console.error(`Error ${action} post:`, error.message);
-      alert(`${error.message}`);
+  const checkLoginStatus = () => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+    if (token) {
+      fetchUser();
     }
   };
 
-  const upvotePost = async (id) => {
-    try {
-      const response = await axios.post(`https://api-main.spoekle.com/api/posts/${id}/upvote`);
-      if (response.status === 200) {
-        fetchPosts();
-      } else {
-        console.error('Error upvoting post:', response.data);
-        alert(response.data);
+  const fetchUser = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const response = await axios.get('https://api-main.spoekle.com/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(response.data);
+      } catch (error) {
+        console.error('Error fetching user:', error);
       }
-    } catch (error) {
-      handleError(error, 'upvoting');
     }
   };
 
-  const downvotePost = async (id) => {
-    try {
-      const response = await axios.post(`https://api-main.spoekle.com/api/posts/${id}/downvote`);
-      if (response.status === 200) {
-        fetchPosts();
-      } else {
-        console.error('Error downvoting post:', response.data);
-        alert(response.data);
-      }
-    } catch (error) {
-      handleError(error, 'downvoting');
-    }
+  const paginate = (page) => {
+    setCurrentPage(page);
+    const startIndex = (page - 1) * 6;
+    const endIndex = startIndex + 6;
+    setCurrentPosts(posts.slice(startIndex, endIndex));
   };
 
   const getSeason = () => {
@@ -157,17 +129,111 @@ function Posts() {
     }));
   };
 
-  // Pagination and sorting
-  const indexOfLastPost = currentPage * itemsPerPage;
-  const indexOfFirstPost = indexOfLastPost - itemsPerPage;
-  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
+  const renderContent = () => {
+    if (expandedPost === 'new') {
+      return <NewPostForm setExpandedPost={setExpandedPost} />;
+    } else if (expandedPost) {
+      const post = posts.find(p => p._id === expandedPost);
+      return <PostContent post={post} setExpandedPost={setExpandedPost} user={user} isLoggedin={isLoggedIn} />;
+    } else {
+      return (
+        <>
+          <div className="text-center py-4 justify-center items-center z-30">
+            <div className="pb-4 flex justify-center">
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="bg-white text-neutral-900 dark:bg-neutral-800 dark:text-white transition duration-200 py-2 px-4 rounded-md border-2 border-neutral-800 dark:border-white"
+              >
+                <option value="newest">Newest Posts</option>
+                <option value="oldest">Oldest Posts</option>
+                <option value="highestUpvotes">Most Likes</option>
+                <option value="highestDownvotes">Most Dislikes</option>
+              </select>
+            </div>
+            {isLoggedIn && (user?.role === 'admin' || user?.role === 'uploader') && (
+              <div className="flex justify-center items-center mt-4">
+                <button
+                  className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 py-2 px-4 rounded-md border-2 border-neutral-800 dark:border-white"
+                  onClick={() => setExpandedPost('new')}
+                >
+                  New Post!
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="w-full min-w-full my-4 justify-center items-center rounded-2xl animate-fade animate-delay-500">
+            <div className="w-full min-w-full justify-center grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {currentPosts.length === 0 ? (
+                Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="grid grid-cols-2 shadow-2xl relative drop-shadow-md bg-white dark:bg-neutral-800 rounded-xl overflow-hidden">
+                    <div className='rounded-t-lg bg-white dark:bg-neutral-800 transition duration-200'>
+                      <img src={winterBg} alt="Logo" className="rounded-lg border-white" />
+                    </div>
+                    <div className="w-full flex transition duration-200 bg-neutral-700">
+                      <h2 className='m-2'>
+                        Testing text why does this look funky yupiieeee
+                      </h2>
+                    </div>
+                    <div className="col-span-2 w-full flex justify-start px-4 pt-2 pb-4">
+                      <button
+                        className="text-white flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-green-500 dark:hover:bg-green-800 transition duration-300 py-2 px-6 rounded-l-md"
+                      >
+                        <FaThumbsUp className="mr-1" /> 420
+                      </button>
+                      <button
+                        className="text-white flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-red-500 dark:hover:bg-red-800 transition duration-300 py-2 px-6 rounded-r-md"
+                      >
+                        <FaThumbsDown className="mr-1" /> 69
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                currentPosts.length > 0 ? (
+                  currentPosts
+                    .map(post => (
+                      <div key={post._id} className="grid grid-cols-2 max-h-72 h-72 shadow-2xl relative drop-shadow-md overflow-clip bg-white dark:bg-neutral-800 rounded-xl hover:cursor-pointer hover:scale-105 transition duration-200">
+                        <div className='rounded-t-xl' style={{ backgroundImage: `url(${post.file})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                        </div>
 
-  const totalPages = Math.ceil(posts.length / itemsPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+                        <div className="m-2 w-full flex flex-col transition duration-200">
+                          <p className='mb-2 text-neutral-300 font-semibold'>
+                            {post.author}
+                          </p>
+                          <h2 className='mb-2 text-white w-40 text-lg font-bold text-ellipsis h-20 overflow-hidden'>
+                            {post.title}
+                          </h2>
+                          <p className="text-white w-36 text-sm text-ellipsis overflow-hidden h-24">{post.message}</p>
+                        </div>
+                        <Link onClick={() => setExpandedPost(post._id)} className='bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 py-2 px-4 rounded-b-xl border-2 border-neutral-800 dark:border-white'>
+                          <h2 className='text-center'>Read More!</h2>
+                        </Link>
+                      </div>
+                    ))
+                ) : (
+                  <div className="my-2 mx-4 text-center bg-black/30 p-4 rounded-md font-semibold text-xl text-white col-span-full">No posts available.</div>
+                )
+              )}
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <div className="items-center bg-white justify-center rounded-md py-2 px-4">
+              <Pagination
+                showFirstButton showLastButton
+                count={totalPages}
+                page={currentPage}
+                onChange={(e, page) => paginate(page)}
+              />
+            </div>
+          </div>
+        </>
+      );
+    }
+  };
 
   return (
-    <div className="min-h-screen w-full absolute top-0 text-white flex flex-col items-center bg-neutral-200 dark:bg-neutral-900 transition duration-200">
+    <div className="min-h-screen w-full top-0 text-white absolute bg-neutral-200 dark:bg-neutral-900">
       <div className='w-full'>
         <LoadingBar color='#f11946' progress={progress} onLoaderFinished={() => setProgress(0)} />
       </div>
@@ -181,110 +247,12 @@ function Posts() {
       </div>
 
       <div className="container justify-self-center text-white p-4 pt-8 bg-neutral-200 dark:bg-neutral-900 transition duration-200 justify-center items-center animate-fade">
-        <div className="text-center py-4 justify-center items-center z-30">
-          <div className="pb-4 flex justify-center">
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              className="bg-white text-neutral-900 dark:bg-neutral-800 dark:text-white transition duration-200 py-2 px-4 rounded-md border-2 border-neutral-800 dark:border-white"
-            >
-              <option value="newest">Newest Posts</option>
-              <option value="oldest">Oldest Posts</option>
-              <option value="highestUpvotes">Most Likes</option>
-              <option value="highestDownvotes">Most Dislikes</option>
-            </select>
-          </div>
-          {isLoggedIn && (user?.role === 'admin' || user?.role === 'uploader') && (
-          <div className="flex justify-center items-center mt-4">
-            <button
-              className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 py-2 px-4 rounded-md border-2 border-neutral-800 dark:border-white"
-              onClick={() => setExpandedPost('new')}
-            >
-              New Post!
-            </button>
-          </div>
-        )}
-        </div>
-        <div className="w-full min-w-full my-4 justify-center items-center rounded-2xl animate-fade animate-delay-500">
-          <div className="w-full min-w-full justify-center grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentPosts.length === 0 ? (
-              Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="grid grid-cols-2 shadow-2xl relative drop-shadow-md bg-white dark:bg-neutral-800 rounded-xl overflow-hidden">
-                  <div className='rounded-t-lg bg-white dark:bg-neutral-800 transition duration-200'>
-                    <img src={winterBg} alt="Logo" className="rounded-lg border-white" />
-                  </div>
-                  <div className="w-full flex transition duration-200 bg-neutral-700">
-                    <h2 className='m-2'>
-                      Testing texxt why does this look funky yupiieeee
-                    </h2>
-                  </div>
-                  <div className="col-span-2 w-full flex justify-start px-4 pt-2 pb-4">
-                    <button
-                      className="text-white flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-green-500 dark:hover:bg-green-800 transition duration-300 py-2 px-6 rounded-l-md"
-                    >
-                      <FaThumbsUp className="mr-1" /> 420
-                    </button>
-                    <button
-                      className="text-white flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-red-500 dark:hover:bg-red-800 transition duration-300 py-2 px-6 rounded-r-md"
-                    >
-                      <FaThumbsDown className="mr-1" /> 69
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              currentPosts.length > 0 ? (
-                currentPosts
-                  .map(post => (
-                    <div key={post._id} className="grid grid-cols-2 max-h-72 h-72 shadow-2xl relative drop-shadow-md overflow-clip bg-white dark:bg-neutral-800 rounded-xl hover:cursor-pointer hover:scale-105 transition duration-200"
-                    >
-                      <div className='rounded-t-xl' style={{ backgroundImage: `url(${post.file})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                      </div>
-                      
-                      <div className="m-2 w-full flex flex-col transition duration-200">
-                        <p className='mb-2 text-neutral-300 font-semibold'>
-                          {post.author}
-                        </p>
-                        <h2 className='mb-2 text-white w-40 text-lg font-bold text-ellipsis h-20 overflow-hidden'>
-                          {post.title}
-                        </h2>
-                        <p className="text-white w-36 text-sm text-ellipsis overflow-hidden h-24">{post.message}</p>
-                      </div>
-                      <button className='bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 py-2 px-4 rounded-b-xl border-2 border-neutral-800 dark:border-white'
-                        onClick={() => setExpandedPost(post._id)}
-                        >
-                        <h2>Read More!</h2>
-                      </button>
-                    </div>
-                  ))
-              ) : (
-                <div className="my-2 mx-4 text-center bg-black/30 p-4 rounded-md font-semibold text-xl text-white col-span-full">No posts available.</div>
-              )
-            )}
-          </div>
-        </div>
-        <div className="flex justify-center">
-          <div className="items-center bg-white justify-center rounded-md py-2 px-4">
-            <Pagination
-              showFirstButton showLastButton
-              count={totalPages}
-              page={currentPage}
-              onChange={(e, page) => paginate(page)}
-            />
-          </div>
-        </div>
+
+
+        {renderContent()}
       </div>
-      <PostModal
-        expandedPost={expandedPost}
-        posts={posts}
-        setExpandedPost={setExpandedPost}
-        isLoggedIn={isLoggedIn}
-        token={token}
-        user={user}
-        fetchPosts={fetchPosts}
-      />
     </div>
   );
-}
+};
 
 export default Posts;

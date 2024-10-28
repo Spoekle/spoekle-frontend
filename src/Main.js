@@ -77,11 +77,11 @@ function Main() {
     }
 
     if (!user) {
-      return <Navigate to="/clips" replace state={{ alert: "You must be logged in to view this page." }} />;
+      return <Navigate to="/posts" replace state={{ alert: "You must be logged in to view this page." }} />;
     }
 
     if (isAdminRequired && user.role !== 'admin') {
-      return <Navigate to="/clips" replace state={{ alert: "You must have admin rights to do this!" }} />;
+      return <Navigate to="/posts" replace state={{ alert: "You must have admin rights to do this!" }} />;
     }
 
     return children;
@@ -93,6 +93,7 @@ function Main() {
       <Routes>
         <Route exact path="/" element={<Home />} />
         <Route path="/posts" element={<Posts />} />
+        <Route path="/posts/:postId" element={<Posts />} />
         <Route path="/photography" element={<Photography />} />
         <Route path="/privacystatement" element={<PrivacyStatement />} />
         <Route path="/upload" element={<RequireAuth isAdminRequired={true}><UploadClip /></RequireAuth>} />

@@ -1,12 +1,79 @@
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import background from '../media/background.jpg';
 import me from '../media/me.jpg';
 import cat from '../media/cat.jpg';
+import { FaThumbsDown, FaThumbsUp } from 'react-icons/fa';
+import LoadingBar from 'react-top-loading-bar';
+import { Link } from 'react-router-dom';
 
 function HomePage() {
+  const [posts, setPosts] = useState([]);
+  const [expandedPost, setExpandedPost] = useState(null);
+  const [sortOption, setSortOption] = useState('newest');
+  const [isLoading, setIsLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(1);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const fetchInitialData = async () => {
+    try {
+      await fetchPosts();
+      setProgress(100);
+    } catch (error) {
+      console.error('Error fetching initial data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      setIsLoading(true);
+      const postResponse = await axios.get('https://api-main.spoekle.com/api/posts');
+      sortPosts(postResponse.data);
+    } catch (error) {
+      console.error('Error fetching posts and ratings:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sortPosts = (postsToSort = posts) => {
+    let sortedPosts = [...postsToSort];
+    switch (sortOption) {
+      case 'newest':
+        sortedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case 'oldest':
+        sortedPosts.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        break;
+      case 'highestUpvotes':
+        sortedPosts.sort((a, b) => b.upvotes - a.upvotes);
+        break;
+      case 'highestDownvotes':
+        sortedPosts.sort((a, b) => b.downvotes - a.downvotes);
+        break;
+      default:
+        break;
+    }
+    setPosts(sortedPosts);
+  };
+
+  // Pagination and sorting
+  const indexOfLastPost = currentPage * itemsPerPage;
+  const indexOfFirstPost = indexOfLastPost - itemsPerPage;
+  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
 
   return (
     <div className="absolute top-0 min-h-screen bg-neutral-200 dark:bg-neutral-900 text-white">
+      <div className='w-full'>
+        <LoadingBar color='#f11946' progress={progress} onLoaderFinished={() => setProgress(0)} />
+      </div>
       <div className="flex min-h-screen justify-center items-center animate-fade" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="relative flex bg-gradient-to-b from-black/20 from-60% dark:to-neutral-900 to-neutral-200 backdrop-blur-lg justify-center items-center w-screen h-screen">
           <div className="container grid grid-cols-1 md:grid-cols-2">
@@ -32,7 +99,7 @@ function HomePage() {
             <div className="col-start-1 col-end-1 justify-center items-center p-4 bg-neutral-950/20 backdrop-blur-lg rounded-xl border-r-4 border-blue-600 shadow-2xl">
               <p className="text-2xl font-bold m-4 text-center">Summary of what I do:</p>
               <p className="text-lg m-4 text-center">I'm currently enrolled at MBO Utrecht, for the study Expert IT System and Devices, where I mostly learn about
-                hardware, software, networking and security. <br/> I also have a passion for photography, web development, video editing and gaming.
+                hardware, software, networking and security. <br /> I also have a passion for photography, web development, video editing and gaming.
               </p>
             </div>
           </div>
@@ -43,7 +110,60 @@ function HomePage() {
         <div className="relative flex bg-gradient-to-b dark:from-neutral-900 from-neutral-200 to-black/20 to-60% backdrop-blur-lg justify-center items-center w-screen h-screen">
           <div className="container grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="z-30 flex flex-col justify-center md:justify-self-start items-center w-full bg-white/20 backdrop-blur-lg rounded-xl">
-              test
+              <div className="w-full min-w-full justify-center">
+                {currentPosts.length === 0 ? (
+                  Array.from({ length: 1 }).map((_, index) => (
+                    <div key={index} className="grid grid-cols-2 shadow-2xl relative drop-shadow-md bg-white dark:bg-neutral-800 rounded-xl overflow-hidden">
+                      <div className='rounded-t-lg bg-white dark:bg-neutral-800 transition duration-200'>
+                        <img src={background} alt="Logo" className="rounded-lg border-white" />
+                      </div>
+                      <div className="w-full flex transition duration-200 bg-neutral-700">
+                        <h2 className='m-2'>
+                          Testing texxt why does this look funky yupiieeee
+                        </h2>
+                      </div>
+                      <div className="col-span-2 w-full flex justify-start px-4 pt-2 pb-4">
+                        <button
+                          className="text-white flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-green-500 dark:hover:bg-green-800 transition duration-300 py-2 px-6 rounded-l-md"
+                        >
+                          <FaThumbsUp className="mr-1" /> 420
+                        </button>
+                        <button
+                          className="text-white flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-red-500 dark:hover:bg-red-800 transition duration-300 py-2 px-6 rounded-r-md"
+                        >
+                          <FaThumbsDown className="mr-1" /> 69
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  currentPosts.length > 0 ? (
+                    currentPosts
+                      .map(post => (
+                        <div key={post._id} className="grid grid-cols-2 max-h-72 h-72 shadow-2xl relative drop-shadow-md overflow-clip bg-white dark:bg-neutral-800 rounded-xl hover:scale-105 transition duration-200"
+                        >
+                          <div className='rounded-t-xl' style={{ backgroundImage: `url(${post.file})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                          </div>
+
+                          <div className="m-2 w-full flex flex-col transition duration-200">
+                            <p className='mb-2 text-neutral-300 font-semibold'>
+                              {post.author}
+                            </p>
+                            <h2 className='mb-2 text-white w-40 text-lg font-bold text-ellipsis h-20 overflow-hidden'>
+                              {post.title}
+                            </h2>
+                            <p className="text-white w-36 text-sm text-ellipsis overflow-hidden h-24">{post.message}</p>
+                          </div>
+                          <Link to={`/posts/${post._id}`} className='bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 py-2 px-4 rounded-b-xl border-2 border-neutral-800 dark:border-white'>
+                            <h2 className='text-center'>Read More!</h2>
+                          </Link>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="my-2 mx-4 text-center bg-black/30 p-4 rounded-md font-semibold text-xl text-white col-span-full">No posts available.</div>
+                  )
+                )}
+              </div>
             </div>
             <div className="z-20 flex flex-col justify-center md:justify-self-start items-center">
               <h1 className="text-4xl md:text-7xl lg:text-9xl font-bold mb-4 text-left animate-fade-right animate-delay-300">Latest Post</h1>

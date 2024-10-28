@@ -141,7 +141,7 @@ function Stats({ user }) {
       ];
 
   return (
-    <div className="min-h-screen text-white flex flex-col items-center bg-neutral-200 dark:bg-neutral-900 transition duration-200">
+    <div className="min-h-screen w-full top-0 absolute text-white flex flex-col items-center bg-neutral-200 dark:bg-neutral-900 transition duration-200">
       <div className='w-full'>
         <LoadingBar color='#f11946' progress={progress} onLoaderFinished={() => setProgress(0)} />
       </div>
