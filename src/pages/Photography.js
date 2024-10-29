@@ -1,22 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import LoadingBar from 'react-top-loading-bar';
-import ImageGallery from "react-image-gallery";
+import PhotoModal from './components/photos/PhotoModal';
 import NewPhotoForm from './components/photos/NewPhotoForm';
-
-import winterBg from '../media/winter.webp';
-import springBg from '../media/spring.jpg';
-import summerBg from '../media/summer.jpg';
-import fallBg from '../media/fall.jpg';
 
 function Photography() {
   const [user, setUser] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [newPhotoForm, setNewPhotoForm] = useState(false);
+  const [expandedPhoto, setExpandedPhoto] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [seasonInfo, setSeasonInfo] = useState({ season: '' });
+  const [randomPhoto, setRandomPhoto] = useState(null);
 
   useEffect(() => {
     fetchInitialData();
@@ -29,7 +25,6 @@ function Photography() {
       checkLoginStatus();
       setProgress(75);
       await fetchPhotos();
-      getSeason();
       setProgress(100);
     } catch (error) {
       console.error('Error fetching initial data:', error);
@@ -38,7 +33,6 @@ function Photography() {
     }
   };
 
-  const background = seasonInfo.season === 'Winter' ? winterBg : seasonInfo.season === 'Spring' ? springBg : seasonInfo.season === 'Summer' ? summerBg : fallBg;
 
   const fetchUser = async () => {
     const token = localStorage.getItem('token');
@@ -58,16 +52,15 @@ function Photography() {
     try {
       const response = await axios.get('https://api-main.spoekle.com/api/photos');
       setPhotos(response.data);
+  
+      if (response.data.length > 0) {
+        const randomIndex = Math.floor(Math.random() * response.data.length);
+        setRandomPhoto(response.data[randomIndex]);
+      }
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('Error fetching photos:', error);
     }
   };
-
-  const photoGallery = photos.map(photo => ({
-    original: photo.file,
-    thumbnail: photo.thumbnailFile,
-    description: photo.title,
-  }));
 
   const checkLoginStatus = () => {
     const token = localStorage.getItem('token');
@@ -75,27 +68,6 @@ function Photography() {
     if (token) {
       fetchUser();
     }
-  };
-
-  const getSeason = () => {
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    let season = '';
-  
-    if (currentMonth >= 0 && currentMonth <= 2) {
-      season = 'Winter';
-    } else if (currentMonth >= 3 && currentMonth <= 5) {
-      season = 'Spring';
-    } else if (currentMonth >= 6 && currentMonth <= 8) {
-      season = 'Summer';
-    } else {
-      season = 'Fall';
-    }
-  
-    setSeasonInfo(prevSeasonInfo => ({
-      ...prevSeasonInfo,
-      season
-    }));
   };
 
   const renderContent = () => {
@@ -116,11 +88,24 @@ function Photography() {
               </div>
             )}
           </div>
-          <div className="container">
-            <ImageGallery 
-              items={photoGallery}
-            />
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 justify-items-center items-center">
+            {photos.length > 0 ? (
+              photos.map(photo => (
+                <div key={photo.id} className="w-full h-full hover:scale-95 transition duration-300" onClick={() => setExpandedPhoto(photo._id)}>
+                  <div className="flex flex-col justify-center">
+                    <img src={photo.thumbnailFile} alt={photo.title} className="rounded-lg w-full"></img>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <h1 className="text-3xl text-center">No photos to display</h1>
+            )}
           </div>
+          <PhotoModal
+          expandedPhoto={expandedPhoto}
+          setExpandedPhoto={setExpandedPhoto}
+          photos={photos}
+        />
         </>
       );
     }
@@ -131,11 +116,11 @@ function Photography() {
       <div className='w-full'>
         <LoadingBar color='#f11946' progress={progress} onLoaderFinished={() => setProgress(0)} />
       </div>
-      <div className="flex w-full h-96 justify-center items-center drop-shadow-xl animate-fade" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="flex bg-black/20 backdrop-blur-lg justify-center items-center w-full h-full">
+      <div className="flex w-full h-96 justify-center items-center drop-shadow-xl animate-fade" style={{ backgroundImage: randomPhoto ? `url(${randomPhoto.file})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="flex backdrop-blur-lg justify-center items-center w-full h-full">
           <div className="flex flex-col justify-center items-center">
-            <h1 className="text-4xl font-bold mb-4 text-center">Posts</h1>
-            <h1 className="text-3xl mb-4 text-center">These are some projects that I have worked on!</h1>
+            <h1 className="text-4xl font-bold mb-4 text-center">Photos</h1>
+            <h1 className="text-3xl mb-4 text-center">Here you can find some pictures I took</h1>
           </div>
         </div>
       </div>

@@ -15,10 +15,7 @@ function AdminDash() {
     password: '',
     role: 'user'
   });
-  const [config, setConfig] = useState({ denyThreshold: 5 });
-  const [clips, setClips] = useState([]);
-  const [ratings, setRatings] = useState({});
-  const [downloading, setDownloading] = useState(false);
+  const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [seasonInfo, setSeasonInfo] = useState({});
@@ -31,9 +28,9 @@ function AdminDash() {
     try {
       await fetchUsers();
       setProgress(10);
-      await fetchConfig();
+      await fetchPhotos();
       setProgress(30);
-      getSeason(); 
+      getSeason();
       setProgress(100);
       setLoading(false);
     } catch (error) {
@@ -58,19 +55,12 @@ function AdminDash() {
     }
   };
 
-  const fetchConfig = async () => {
+  const fetchPhotos = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('https://api-main.spoekle.com/api/admin/config', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      // Extract the first element from the array
-      if (response.data.length > 0) {
-        setConfig(response.data[0]);
-      }
+      const response = await axios.get('https://api-main.spoekle.com/api/photos');
+      setPhotos(response.data);
     } catch (error) {
-      console.error('Error fetching config:', error);
+      console.error('Error fetching posts:', error);
     }
   };
 
@@ -79,14 +69,6 @@ function AdminDash() {
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value
-    });
-  };
-
-  const handleConfigChange = (e) => {
-    const { name, value } = e.target;
-    setConfig({
-      ...config,
-      [name]: Number(value)
     });
   };
 
@@ -103,20 +85,6 @@ function AdminDash() {
     } catch (error) {
       console.error('Error creating user:', error);
       alert('Failed to create user. Please try again.');
-    }
-  };
-
-  const handleConfigSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put('https://api-main.spoekle.com/api/admin/config', config, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert('Config updated successfully');
-    } catch (error) {
-      console.error('Error updating config:', error);
-      alert('Failed to update config. Please try again.');
     }
   };
 
@@ -165,12 +133,18 @@ function AdminDash() {
     }
   };
 
-  const getCurrentDate = () => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  const handleDeletePhoto = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`https://api-main.spoekle.com/api/photos/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Photo deleted successfully');
+      fetchPhotos();
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      alert('Failed to delete photo. Please try again.');
+    }
   };
 
   const toggleEditUser = (user) => {
@@ -185,7 +159,7 @@ function AdminDash() {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
     let season = '';
-  
+
     if (currentMonth >= 0 && currentMonth <= 2) {
       season = 'Winter';
     } else if (currentMonth >= 3 && currentMonth <= 5) {
@@ -195,7 +169,7 @@ function AdminDash() {
     } else {
       season = 'Fall';
     }
-  
+
     setSeasonInfo(prevSeasonInfo => ({
       ...prevSeasonInfo,
       season
@@ -207,7 +181,7 @@ function AdminDash() {
       <div className='w-full'>
         <LoadingBar color='#f11946' progress={progress} onLoaderFinished={() => setProgress(0)} />
       </div>
-      <div className="w-full flex h-96 justify-center items-center animate-fade" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center'}}>
+      <div className="w-full flex h-96 justify-center items-center animate-fade" style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="flex bg-black/20 backdrop-blur-md justify-center items-center w-full h-full">
           <div className="flex flex-col justify-center items-center">
             <h1 className="text-4xl font-bold mb-4 text-center">Admin Dashboard</h1>
@@ -269,7 +243,6 @@ function AdminDash() {
                     className="w-full px-3 py-2 bg-white dark:bg-neutral-900 dark:text-white text-neutral-900 rounded-md focus:outline-none focus:bg-neutral-200 dark:focus:bg-neutral-700"
                   >
                     <option value="user">User</option>
-                    <option value="editor">Editor</option>
                     <option value="uploader">Uploader</option>
                     <option value="admin">Admin</option>
                   </select>
@@ -332,7 +305,7 @@ function AdminDash() {
                           {editUser && editUser._id === user._id && (
                             <div className="max-w-md w-full bg-black/20 mt-4 p-4 rounded-md shadow-md backdrop-blur-xl">
                               <h2 className="text-2xl font-bold text-white">Edit {editUser.username}</h2>
-                              <div className="w-full h-1 rounded-full my-2 bg-white"/>
+                              <div className="w-full h-1 rounded-full my-2 bg-white" />
                               <form onSubmit={handleEditSubmit}>
                                 <div className="mb-4">
                                   <label htmlFor="username" className="block text-gray-300">Username:</label>
@@ -367,7 +340,6 @@ function AdminDash() {
                                     className="w-full px-3 py-2 bg-neutral-800 text-white rounded-md focus:outline-none focus:bg-neutral-900"
                                   >
                                     <option value="user">User</option>
-                                    <option value="editor">Editor</option>
                                     <option value="uploader">Uploader</option>
                                     <option value="admin">Admin</option>
                                   </select>
@@ -390,34 +362,46 @@ function AdminDash() {
               </div>
             </div>
 
-            <div className="col-span-1 w-full bg-neutral-300 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 p-8 rounded-md shadow-md animate-fade animate-delay-500">
-              <h2 className="text-3xl font-bold mb-4">Admin Config</h2>
-              <form onSubmit={handleConfigSubmit}>
-                <div className="mb-4">
-                  <label htmlFor="denyThreshold" className="block text-neutral-900 dark:text-gray-300">Deny Threshold:</label>
-                  <input
-                    type="number"
-                    id="denyThreshold"
-                    name="denyThreshold"
-                    value={config.denyThreshold}
-                    onChange={handleConfigChange}
-                    className="w-full px-3 py-2 bg-white dark:bg-neutral-900 dark:text-white text-neutral-900 rounded-md focus:outline-none focus:bg-neutral-200 dark:focus:bg-neutral-700"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md focus:outline-none focus:bg-blue-600"
-                >
-                  Update Config
-                </button>
-              </form>
+            <div className="lg:col-span-3 md:col-span-2 col-span-1 min-w-full bg-neutral-300 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 p-8 rounded-md shadow-md animate-fade animate-delay-[400ms]">
+              <h2 className="text-3xl font-bold mb-4">Manage Photos</h2>
+              <div className="grid md:grid-cols-4 grid-cols-2 gap-4">
+                {!photos.length ? (
+                  <div className="flex justify-center items-center space-x-2">
+                    <BiLoaderCircle className="animate-spin h-5 w-5 text-white" />
+                    <span>Loading Photos...</span>
+                  </div>
+                ) : (
+                  photos.map(photo => (
+                    <div
+                      key={photo._id}
+                      className={`p-2 aspect-square rounded-lg bg-cover bg-center`}
+                      style={{
+                        backgroundImage: `url(${photo.file})`,
+                      }}
+                    >
+                      <div className="relative z-10 flex justify-end items-center">
+                        <div>
+                          <button
+                            onClick={() => handleDeletePhoto(photo._id)}
+                            className="bg-red-500/50 hover:bg-red-600 backdrop-blur-2xl text-white font-bold py-1 px-2 rounded-md transition duration-200"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
+
+
           </div>
-        </div>   
+        </div>
       )}
     </div>
-    
+
   );
 }
 

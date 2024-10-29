@@ -39,7 +39,7 @@ const NewPhotoForm = ({ setNewPhotoForm }) => {
       }
       setNewPhotoForm(false);
     } catch (error) {
-      console.error('Error creating post:', error);
+      console.error('Error uploading photos:', error);
     }
   };
 
