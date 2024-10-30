@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const NewPostForm = ( setExpandedPost ) => {
+const NewPostForm = ( setExpandedPost, fetchPosts ) => {
   const [author, setAuthor] = useState('');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
@@ -23,6 +23,7 @@ const NewPostForm = ( setExpandedPost ) => {
           Authorization: `Bearer ${token}`,
         },
       });
+      fetchPosts();
       setExpandedPost(null);
     } catch (error) {
       console.error('Error creating post:', error);

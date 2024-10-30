@@ -376,7 +376,7 @@ function AdminDash() {
                       key={photo._id}
                       className={`p-2 aspect-square rounded-lg bg-cover bg-center`}
                       style={{
-                        backgroundImage: `url(${photo.file})`,
+                        backgroundImage: `url(${photo.thumbnailFile})`,
                       }}
                     >
                       <div className="relative z-10 flex justify-end items-center">

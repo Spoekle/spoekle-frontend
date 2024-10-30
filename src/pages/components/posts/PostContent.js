@@ -2,13 +2,18 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 
-const PostContent = ({ post, setExpandedPost, isLoggedIn, user }) => {
+const PostContent = ({ post, setExpandedPost, isLoggedIn, user, fetchPosts }) => {
   const [currentPost, setCurrentPost] = useState(post);
   const [newComment, setNewComment] = useState('');
 
   if (!currentPost) {
     return <div>Loading...</div>;
   }
+
+  const closeExpandedPost = () => {
+    fetchPosts();
+    setExpandedPost(null);
+  };
 
   const handleUpvote = async () => {
     const token = localStorage.getItem('token');
@@ -103,7 +108,7 @@ const PostContent = ({ post, setExpandedPost, isLoggedIn, user }) => {
         <h2 className="text-xl text-white font-bold">{currentPost.author}</h2>
         <button
           className="bg-neutral-800 hover:bg-neutral-900 text-white px-4 py-2 rounded-lg"
-          onClick={() => setExpandedPost(null)}
+          onClick={closeExpandedPost}
         >
           Back to Posts
         </button>
