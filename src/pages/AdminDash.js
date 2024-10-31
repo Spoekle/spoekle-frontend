@@ -364,7 +364,7 @@ function AdminDash() {
 
             <div className="lg:col-span-3 md:col-span-2 col-span-1 min-w-full bg-neutral-300 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 p-8 rounded-md shadow-md animate-fade animate-delay-[400ms]">
               <h2 className="text-3xl font-bold mb-4">Manage Photos</h2>
-              <div className="grid md:grid-cols-4 grid-cols-2 gap-4">
+              <div className="grid lg:grid-cols-6 md:grid-cols-4 grid-cols-2 gap-4">
                 {!photos.length ? (
                   <div className="flex justify-center items-center space-x-2">
                     <BiLoaderCircle className="animate-spin h-5 w-5 text-white" />

@@ -52,7 +52,7 @@ function Photography() {
     try {
       const response = await axios.get('https://api-main.spoekle.com/api/photos');
       setPhotos(response.data);
-  
+
       if (response.data.length > 0) {
         const randomIndex = Math.floor(Math.random() * response.data.length);
         setRandomPhoto(response.data[randomIndex]);
@@ -88,13 +88,16 @@ function Photography() {
               </div>
             )}
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 justify-items-center items-center">
+          <div className="columns-2 md:columns-4 lg:columns-5 gap-4">
             {photos.length > 0 ? (
-              photos.map(photo => (
-                <div key={photo.id} className="w-full h-full hover:scale-95 transition duration-300" onClick={() => setExpandedPhoto(photo._id)}>
-                  <div className="flex flex-col justify-center">
-                    <img src={photo.thumbnailFile} alt={photo.title} className="rounded-lg w-full"></img>
-                  </div>
+              photos.map((photo) => (
+                <div key={photo.id} className="mb-4">
+                  <img
+                    src={photo.thumbnailFile}
+                    alt={photo.title}
+                    className="rounded-lg w-full h-auto hover:scale-95 transition duration-300"
+                    onClick={() => setExpandedPhoto(photo._id)}
+                  />
                 </div>
               ))
             ) : (
@@ -102,10 +105,10 @@ function Photography() {
             )}
           </div>
           <PhotoModal
-          expandedPhoto={expandedPhoto}
-          setExpandedPhoto={setExpandedPhoto}
-          photos={photos}
-        />
+            expandedPhoto={expandedPhoto}
+            setExpandedPhoto={setExpandedPhoto}
+            photos={photos}
+          />
         </>
       );
     }

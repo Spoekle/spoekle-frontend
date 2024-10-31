@@ -82,8 +82,8 @@ function Navbar({ setUser, user }) {
     };
 
     return (
-        <nav className="m-6 z-50 sticky text-white">
-            <div className="container mx-auto p-4 flex items-center justify-between flex-wrap bg-white/10 backdrop-blur-lg rounded-xl border border-white transition duration-200">
+        <nav className="m-6 z-50 sticky  text-white">
+            <div className="container mx-auto p-3 flex items-center justify-between flex-wrap bg-white/10 backdrop-blur-lg rounded-xl border border-white transition duration-200">
                 <div className="items-center text-white ml-6 mr-6 inline hover:scale-110 transition duration-200">
                     <NavLink to="/" className={"flex items-center"}>
                         <img src={logo} alt="Logo" className="h-10 mr-2 block rounded-full border-2 border-white" />

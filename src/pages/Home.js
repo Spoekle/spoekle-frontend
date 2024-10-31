@@ -109,60 +109,34 @@ function HomePage() {
       <div className="flex min-h-screen justify-center items-center animate-fade" style={{ backgroundImage: `url(${cat})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="relative flex bg-gradient-to-b dark:from-neutral-900 from-neutral-200 to-black/20 to-60% backdrop-blur-lg justify-center items-center w-screen h-screen">
           <div className="container grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="z-30 flex flex-col justify-center md:justify-self-start items-center w-full bg-white/20 backdrop-blur-lg rounded-xl">
+            <div className="z-30 flex flex-col justify-center md:justify-self-start items-center w-full rounded-xl">
               <div className="w-full min-w-full justify-center">
-                {currentPosts.length === 0 ? (
-                  Array.from({ length: 1 }).map((_, index) => (
-                    <div key={index} className="grid grid-cols-2 shadow-2xl relative drop-shadow-md bg-white dark:bg-neutral-800 rounded-xl overflow-hidden">
-                      <div className='rounded-t-lg bg-white dark:bg-neutral-800 transition duration-200'>
-                        <img src={background} alt="Logo" className="rounded-lg border-white" />
-                      </div>
-                      <div className="w-full flex transition duration-200 bg-neutral-700">
-                        <h2 className='m-2'>
-                          Testing texxt why does this look funky yupiieeee
-                        </h2>
-                      </div>
-                      <div className="col-span-2 w-full flex justify-start px-4 pt-2 pb-4">
-                        <button
-                          className="text-white flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-green-500 dark:hover:bg-green-800 transition duration-300 py-2 px-6 rounded-l-md"
-                        >
-                          <FaThumbsUp className="mr-1" /> 420
-                        </button>
-                        <button
-                          className="text-white flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:text-white hover:bg-red-500 dark:hover:bg-red-800 transition duration-300 py-2 px-6 rounded-r-md"
-                        >
-                          <FaThumbsDown className="mr-1" /> 69
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  currentPosts.length > 0 ? (
-                    currentPosts
-                      .map(post => (
-                        <div key={post._id} className="grid grid-cols-2 max-h-72 h-72 shadow-2xl relative drop-shadow-md overflow-clip bg-white dark:bg-neutral-800 rounded-xl hover:scale-105 transition duration-200"
-                        >
-                          <div className='rounded-t-xl' style={{ backgroundImage: `url(${post.file})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                          </div>
-
-                          <div className="m-2 w-full flex flex-col transition duration-200">
-                            <p className='mb-2 text-neutral-300 font-semibold'>
-                              {post.author}
-                            </p>
-                            <h2 className='mb-2 text-white w-40 text-lg font-bold text-ellipsis h-20 overflow-hidden'>
-                              {post.title}
-                            </h2>
-                            <p className="text-white w-36 text-sm text-ellipsis overflow-hidden h-24">{post.message}</p>
-                          </div>
-                          <Link to={`/posts/${post._id}`} className='bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white transition duration-200 py-2 px-4 rounded-b-xl border-2 border-neutral-800 dark:border-white'>
-                            <h2 className='text-center'>Read More!</h2>
-                          </Link>
+                {currentPosts.length > 0 ? (
+                  currentPosts
+                    .map(post => (
+                      <div key={post._id} className="grid grid-cols-2 max-h-72 h-72 shadow-2xl relative drop-shadow-md overflow-clip bg-white dark:bg-neutral-800/40 rounded-xl hover:scale-95 transition duration-200"
+                      >
+                        <div className='rounded-t-xl' style={{ backgroundImage: `url(${post.file})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
                         </div>
-                      ))
-                  ) : (
-                    <div className="my-2 mx-4 text-center bg-black/30 p-4 rounded-md font-semibold text-xl text-white col-span-full">No posts available.</div>
-                  )
-                )}
+
+                        <div className="m-1 w-full flex flex-col transition duration-200">
+                          <p className='mb-2 text-neutral-800 dark:text-neutral-300 font-semibold'>
+                            {post.author}
+                          </p>
+                          <h2 className='mb-2 text-neutral-900 dark:text-white text-lg font-bold text-ellipsis h-20 overflow-hidden'>
+                            {post.title}
+                          </h2>
+                          <p className="text-neutral-900 dark:text-white text-sm text-ellipsis overflow-hidden h-24">{post.message}</p>
+                        </div>
+                        <Link to={`/posts/${post._id}`} className='bg-neutral-200/50 dark:bg-neutral-900/50 text-neutral-900 dark:text-white transition duration-200 py-2 px-4 rounded-b-xl hover:bg-neutral-300/50 hover:dark:bg-neutral-950/50'>
+                          <h2 className='text-center text-lg font-bold'>Read More!</h2>
+                        </Link>
+                      </div>
+                    ))
+                ) : (
+                  <div className="my-2 mx-4 text-center bg-black/30 p-4 rounded-md font-semibold text-xl text-white col-span-full">No posts available.</div>
+                )
+                }
               </div>
             </div>
             <div className="z-20 flex flex-col justify-center md:justify-self-start items-center">

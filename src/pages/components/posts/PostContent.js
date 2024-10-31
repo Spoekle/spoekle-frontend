@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 
@@ -90,54 +91,54 @@ const PostContent = ({ post, setExpandedPost, isLoggedIn, user, fetchPosts }) =>
 
   return (
     <div className="p-4">
-      {user && user.role === 'admin' && (
-        <div className="bg-neutral-700 p-4 rounded-lg mb-4">
-          <h3 className="text-lg text-white font-bold mb-2">Admin Actions</h3>
-          <button
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
-            onClick={handleDeletePost}
-          >
-            Delete Post
-          </button>
-        </div>
-      )}
-      <div className="flex justify-between items-center bg-neutral-700 p-2 rounded-t-xl">
+      <div className="flex justify-between items-center bg-blue-600 p-2 rounded-t-xl">
         <div className="text-gray-200 text-sm">
           <p>Posted At: {new Date(currentPost.createdAt).toLocaleString()}</p>
         </div>
         <h2 className="text-xl text-white font-bold">{currentPost.author}</h2>
-        <button
+        <Link
+          to={`/posts/`}
           className="bg-neutral-800 hover:bg-neutral-900 text-white px-4 py-2 rounded-lg"
           onClick={closeExpandedPost}
         >
-          Back to Posts
-        </button>
+          Back to Posts!
+        </Link>
       </div>
-      <div className="flex flex-grow p-4 overflow-auto">
+      <div className="grid grid-cols-4 gap-4 bg-neutral-800 flex-grow p-4 overflow-auto">
         <div
-          className="flex-shrink-0 w-48 h-48 bg-cover bg-center rounded-lg mr-4"
+          className="col-span-4 md:col-span-1 w-full h-32 md:h-auto md:aspect-square bg-cover bg-center rounded-lg"
           style={{ backgroundImage: `url(${currentPost.file})` }}
         ></div>
-        <div className="flex flex-col flex-grow">
+        <div className="col-span-4 md:col-span-3 flex-col flex-grow">
           <h3 className="text-2xl text-white font-bold mb-2">{currentPost.title}</h3>
           <div className="bg-black/20 text-white p-4 drop-shadow-md rounded-lg mb-2 flex-grow overflow-auto">
             <p className="text-white">{currentPost.message}</p>
           </div>
         </div>
       </div>
-      <div className="flex items-center p-4 bg-neutral-700 rounded-b-xl">
-        <button
-          className="flex items-center mr-4 text-white hover:text-green-400"
-          onClick={handleUpvote}
-        >
-          <FaThumbsUp className="mr-1" /> {currentPost.upvotes}
-        </button>
-        <button
-          className="flex items-center mr-4 text-white hover:text-red-400"
-          onClick={handleDownvote}
-        >
-          <FaThumbsDown className="mr-1" /> {currentPost.downvotes}
-        </button>
+      <div className="flex items-center justify-between p-4 bg-neutral-700 rounded-b-xl">
+        <div className="flex items-center">
+          <button
+            className="flex items-center mr-4 text-white hover:text-green-400"
+            onClick={handleUpvote}
+          >
+            <FaThumbsUp className="mr-1" /> {currentPost.upvotes}
+          </button>
+          <button
+            className="flex items-center mr-4 text-white hover:text-red-400"
+            onClick={handleDownvote}
+          >
+            <FaThumbsDown className="mr-1" /> {currentPost.downvotes}
+          </button>
+        </div>
+        {user && user.role === 'admin' && (
+          <button
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+            onClick={handleDeletePost}
+          >
+            Delete Post
+          </button>
+        )}
       </div>
 
       <div className="bg-neutral-100 dark:bg-neutral-800 p-4 rounded-xl mt-4">
